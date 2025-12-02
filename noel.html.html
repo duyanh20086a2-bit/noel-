@@ -1,0 +1,309 @@
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Thiệp Noel Bất Ngờ</title>
+<style>
+    body {
+        margin: 0;
+        /* Nền Gradient bầu trời đêm */
+        background: radial-gradient(circle at center, #1a0a33 0%, #00000a 100%); 
+        overflow: hidden;
+        color: white;
+        text-align: center;
+        font-family: 'Arial', sans-serif;
+    }
+
+    /* --- CÂY THÔNG CHÍNH GIỮA --- */
+    .tree {
+        position: absolute;
+        left: 50%;
+        top: 60%;
+        transform: translate(-50%, -50%);
+        width: 200px; /* Kích thước cây thông */
+        filter: drop-shadow(0 0 15px #19ff00)
+                drop-shadow(0 0 25px #0aff0a);
+        animation: glow 2s infinite alternate;
+        z-index: 1; /* Để cây nằm dưới quà rơi */
+    }
+
+    @keyframes glow {
+        0% { filter: drop-shadow(0 0 10px #19ff00); }
+        100% { filter: drop-shadow(0 0 20px #19ff00); }
+    }
+
+    /* --- VẬT THỂ RƠI --- */
+    .fall-item {
+        position: absolute;
+        top: -50px;
+        font-size: 35px;
+        cursor: pointer;
+        z-index: 10; /* Nằm trên cây thông */
+        animation: fall linear forwards;
+        user-select: none;
+    }
+
+    @keyframes fall {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(110vh) rotate(360deg); opacity: 0.8; }
+    }
+
+    /* Hiệu ứng nổ khi click vật trang trí thường */
+    @keyframes pop {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(2); opacity: 0; }
+    }
+
+    /* --- POPUP (HIỆN ẢNH HOẶC THƯ) --- */
+    #modal {
+        display: none; /* Mặc định ẩn */
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85);
+        z-index: 100;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    #modal-content {
+        background: #fff;
+        color: #333;
+        padding: 20px;
+        border-radius: 15px;
+        max-width: 90%;
+        max-height: 80%;
+        text-align: center;
+        box-shadow: 0 0 20px gold;
+        position: relative;
+        overflow-y: auto;
+    }
+
+    #modal-img {
+        max-width: 100%;
+        max-height: 60vh;
+        border-radius: 10px;
+        display: none;
+    }
+
+    #modal-text {
+        font-size: 18px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        display: none;
+        padding: 10px;
+        text-align: left;
+    }
+    
+    #closeBtn {
+        margin-top: 15px;
+        padding: 8px 20px;
+        background: #d40000;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    /* --- TUYẾT RƠI (Giữ nguyên) --- */
+    .snow {
+        position: absolute;
+        top: -10px;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        opacity: 0.8;
+        animation: snowFall linear infinite;
+        pointer-events: none;
+    }
+    @keyframes snowFall { to { transform: translateY(110vh); opacity: 0; } }
+
+    #playBtn {
+        position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+        padding: 10px 20px; background: #fff; color: #000;
+        border-radius: 10px; font-weight: bold; display: none; z-index: 200;
+    }
+</style>
+</head>
+<body>
+
+<button id="playBtn">▶ Bật nhạc</button>
+<audio id="bgm" loop>
+    <source src="https://cdn.pixabay.com/download/audio/2022/12/01/audio_1bf0229556.mp3" type="audio/mpeg">
+</audio>
+
+<img src="https://i.posting.cc/z7238648/i0368-e5ff481171aaacc7226c5184.png" class="tree">
+
+<div id="modal">
+    <div id="modal-content">
+        <h2 id="modal-title" style="color: #d40000; margin-top: 0;"></h2>
+        <img id="modal-img" src="" alt="Gift">
+        <div id="modal-text"></div>
+        
+        <button id="closeBtn">Đóng lại</button>
+    </div>
+</div>
+
+<script>
+// ====================================================
+// CẤU HÌNH NỘI DUNG Ở ĐÂY
+// ====================================================
+
+// 1. Danh sách link ảnh sẽ hiện ra khi bấm vào HỘP QUÀ (🎁)
+const images = [
+    "https://i.postimg.cc/zvRNxJwc/z7286461394854-35a1c3ef4c744e59fe6f7f5b0c2d8d67.jpg",
+    "https://i.postimg.cc/hv7n2SbF/z7286461395334-d62ab30a1daabc06344a994e87ecfbee.jpg",
+    "https://i.postimg.cc/Y0m7dpN5/z7286461395954-18e4d728adb9f0719dd29cf8add3d9c9.jpg",
+    "https://i.postimg.cc/GtsRXcPZ/z7286461397301-47b71b6e86304e54d67a07460408c3f9.jpg",
+    "https://i.postimg.cc/sxZzTV9z/z7286461399572-e864ccbf2a54b4fc071cab3dae43c327.jpg",
+    "https://i.postimg.cc/t7QjfL2Q/z7286461401245-b0ba4740d261ba8aa1f8384a9ccee947.jpg",
+    "https://i.postimg.cc/SjFh5wVw/z7286461402828-6b04ced39b682e76e649b7f5bdab9d42.jpg",
+    "https://i.postimg.cc/14hQTLJZ/z7286461402974-f73277fd68ea437e86473845b427e4fb.jpg",
+    "https://i.postimg.cc/XXSbhTQW/z7286461405672-146cae4aa3247d79b1a5ff2bdc09c064.jpg",
+    "https://i.postimg.cc/NLqcVWpG/z7286461405768-3bec483dcff35413f0b02050408bb34b.jpg",
+    "https://i.postimg.cc/c6ySjVX4/z7286461407858-844bb643b4f1a9e721e25ee00c5e6a05.jpg",
+    "https://i.postimg.cc/CdTgtWmx/z7286461408236-ed72170f459f8005f4203a0d10f63914.jpg",
+    "https://i.postimg.cc/PNsjcB2P/z7286461409776-6884635fd26a5dd0f3a1610a18fcab8c.jpg",
+    "https://i.postimg.cc/rzXkbvQr/z7286461410914-9ac975b1ecc300302cc3b82d2a653ca2.jpg",
+    "https://i.postimg.cc/YjKHVJbF/z7286461412409-48bab9583f27cef3a53545f27a903690.jpg"
+];
+
+// 2. Nội dung thư sẽ hiện ra khi bấm vào CHIẾC TẤT (🧦)
+const letterContent = `
+Gửi người bạn iu nhất,
+
+Chúc bạn iu một mùa Giáng sinh thật ấm áp, an lành và thật nhiều điều bất ngờ!
+Mong rằng năm mới sẽ mang đến cho bạn iu thật nhiều may mắn và hạnh phúc.
+
+Hãy mở những hộp quà và tận hưởng âm nhạc nhé!
+
+Merry Christmas! 🎄✨
+
+Thân mến,
+[Điền tên của bạn vào đây]
+`;
+
+// ====================================================
+// LOGIC CODE (Không cần sửa dưới này)
+// ====================================================
+
+// --- Nhạc ---
+const bgm = document.getElementById("bgm");
+const playBtn = document.getElementById("playBtn");
+function tryPlay() {
+    bgm.play().then(() => playBtn.style.display = "none")
+       .catch(() => playBtn.style.display = "block");
+}
+document.body.addEventListener("click", tryPlay, { once: true });
+document.body.addEventListener("touchstart", tryPlay, { once: true });
+playBtn.onclick = () => { bgm.play(); playBtn.style.display = "none"; };
+
+// --- Xử lý Popup ---
+const modal = document.getElementById("modal");
+const modalImg = document.getElementById("modal-img");
+const modalText = document.getElementById("modal-text");
+const modalTitle = document.getElementById("modal-title");
+const closeBtn = document.getElementById("closeBtn");
+
+function showModal(type) {
+    modal.style.display = "flex";
+    
+    if (type === "gift") {
+        // CẬP NHẬT: Hiện ảnh ngẫu nhiên DUY NHẤT
+        modalTitle.innerText = "Món quà bất ngờ cho bạn iu 🎁";
+        modalImg.style.display = "block";
+        modalText.style.display = "none";
+        
+        // Chọn ảnh random từ danh sách
+        const randomImg = images[Math.floor(Math.random() * images.length)];
+        modalImg.src = randomImg;
+        
+    } else if (type === "sock") {
+        // Hiện thư
+        modalTitle.innerText = "Thư gửi bạn iu 💌";
+        modalImg.style.display = "none";
+        modalText.style.display = "block";
+        modalText.innerText = letterContent.trim();
+    }
+}
+
+closeBtn.onclick = () => {
+    modal.style.display = "none";
+};
+
+// --- Tạo vật rơi ---
+const decorItems = ["⭐","🔔","🍬","🍭","❄️"]; 
+const giftItem = "🎁";
+const sockItem = "🧦";
+
+function spawnItem() {
+    const el = document.createElement("div");
+    el.className = "fall-item";
+    
+    const rand = Math.random();
+    let type = "decor";
+    let icon;
+
+    if (rand < 0.15) { // 15% ra hộp quà
+        icon = giftItem;
+        type = "gift";
+    } else if (rand < 0.25) { // 10% ra chiếc tất
+        icon = sockItem;
+        type = "sock";
+    } else { // Còn lại là đồ trang trí
+        icon = decorItems[Math.floor(Math.random() * decorItems.length)];
+    }
+    
+    el.innerText = icon;
+    el.style.left = Math.random() * 95 + "vw";
+    el.style.animationDuration = (4 + Math.random() * 5) + "s";
+
+    // Xử lý khi click
+    el.onclick = (e) => {
+        e.stopPropagation();
+        
+        if (type === "gift") {
+            showModal("gift");
+            el.remove();
+        } else if (type === "sock") {
+            showModal("sock");
+            el.remove();
+        } else {
+            // Hiệu ứng nổ cho đồ vật thường
+            el.style.animation = "pop 0.3s forwards";
+            setTimeout(() => el.remove(), 300);
+        }
+    };
+
+    document.body.appendChild(el);
+    
+    setTimeout(() => {
+        if (el.parentNode) el.remove();
+    }, 10000);
+}
+
+setInterval(spawnItem, 400); // 0.4 giây rơi 1 món
+
+// --- Tuyết rơi (Nền) ---
+function createSnow() {
+    const snow = document.createElement("div");
+    snow.className = "snow";
+    snow.style.left = Math.random() * 100 + "vw";
+    snow.style.animationDuration = (8 + Math.random() * 5) + "s";
+    snow.style.opacity = Math.random();
+    document.body.appendChild(snow);
+    setTimeout(() => snow.remove(), 12000);
+}
+setInterval(createSnow, 100);
+
+// --- Khởi tạo Cây thông (Đã có ở phần HTML) ---
+
+</script>
+
+</body>
+</html>
