@@ -1,4 +1,4 @@
-<html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -14,22 +14,14 @@
         font-family: 'Arial', sans-serif;
     }
 
-    /* --- CÂY THÔNG CHÍNH GIỮA --- */
+    /* --- CÂY THÔNG CHÍNH GIỮA (Dùng ảnh local tree.png, Đã bỏ GLOW) --- */
     .tree {
         position: absolute;
         left: 50%;
         top: 60%;
         transform: translate(-50%, -50%);
-        width: 200px; /* Kích thước cây thông */
-        filter: drop-shadow(0 0 15px #19ff00)
-                drop-shadow(0 0 25px #0aff0a);
-        animation: glow 2s infinite alternate;
+        width: 250px; /* Tăng kích thước cho ảnh mới */
         z-index: 1; /* Để cây nằm dưới quà rơi */
-    }
-
-    @keyframes glow {
-        0% { filter: drop-shadow(0 0 10px #19ff00); }
-        100% { filter: drop-shadow(0 0 20px #19ff00); }
     }
 
     /* --- VẬT THỂ RƠI --- */
@@ -110,7 +102,7 @@
         cursor: pointer;
     }
 
-    /* --- TUYẾT RƠI (Giữ nguyên) --- */
+    /* --- TUYẾT RƠI --- */
     .snow {
         position: absolute;
         top: -10px;
@@ -138,7 +130,7 @@
     <source src="https://cdn.pixabay.com/download/audio/2022/12/01/audio_1bf0229556.mp3" type="audio/mpeg">
 </audio>
 
-<img src="https://i.posting.cc/z7238648/i0368-e5ff481171aaacc7226c5184.png" class="tree">
+<img src="tree.png" class="tree">
 
 <div id="modal">
     <div id="modal-content">
@@ -215,7 +207,7 @@ function showModal(type) {
     modal.style.display = "flex";
     
     if (type === "gift") {
-        // CẬP NHẬT: Hiện ảnh ngẫu nhiên DUY NHẤT
+        // Hiện ảnh ngẫu nhiên DUY NHẤT
         modalTitle.innerText = "Món quà bất ngờ cho bạn iu 🎁";
         modalImg.style.display = "block";
         modalText.style.display = "none";
@@ -302,10 +294,7 @@ function createSnow() {
 }
 setInterval(createSnow, 100);
 
-// --- Khởi tạo Cây thông (Đã có ở phần HTML) ---
-
 </script>
 
 </body>
-
 </html>
